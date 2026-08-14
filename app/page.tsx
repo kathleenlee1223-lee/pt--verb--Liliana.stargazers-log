@@ -34,6 +34,22 @@ function regular(word: string): Verb | null {
   }};
 }
 
+function porFamily(input: string): Verb | null {
+  const word = input === "por" ? "pôr" : input;
+  if (word !== "pôr" && !word.endsWith("por")) return null;
+  const prefix = word === "pôr" ? "" : word.slice(0, -3);
+  const infinitive = word;
+  const participle = `${prefix}posto`;
+  const join = (forms: string[]) => forms.map((form) => `${prefix}${form}`);
+  const subj = join(["ponha", "ponhas", "ponha", "ponhamos", "ponhais", "ponham"]);
+  return { infinitive, meaning: word === "pôr" ? "放；置" : "pôr 的派生动词", category: "不规则 -pôr / -por", note: "兼容输入 por；葡语动词原形规范写法为 pôr。", forms: {
+    "indicative-present": join(["ponho", "pões", "põe", "pomos", "pondes", "põem"]), "indicative-simplePast": join(["pus", "puseste", "pôs", "pusemos", "pusestes", "puseram"]), "indicative-compoundPast": ter.map((x) => `${x} ${participle}`), "indicative-imperfect": join(["punha", "punhas", "punha", "púnhamos", "púnheis", "punham"]), "indicative-future": join(["porei", "porás", "porá", "poremos", "poreis", "porão"]),
+    "subjunctive-present": subj, "subjunctive-simplePast": join(["pusesse", "pusesses", "pusesse", "puséssemos", "pusésseis", "pusessem"]), "subjunctive-compoundPast": ["tenha", "tenhas", "tenha", "tenhamos", "tenhais", "tenham"].map((x) => `${x} ${participle}`), "subjunctive-imperfect": join(["pusesse", "pusesses", "pusesse", "puséssemos", "pusésseis", "pusessem"]), "subjunctive-future": join(["puser", "puseres", "puser", "pusermos", "puserdes", "puserem"]),
+    "imperative-affirmative": ["—", `${prefix}põe`, subj[2], subj[3], `${prefix}ponde`, subj[5]], "imperative-negative": ["—", `não ${subj[1]}`, `não ${subj[2]}`, `não ${subj[3]}`, `não ${subj[4]}`, `não ${subj[5]}`],
+    "infinitive-personal": [infinitive, `${prefix}pores`, infinitive, `${prefix}pormos`, `${prefix}pordes`, `${prefix}porem`], "infinitive-impersonal": [infinitive],
+  }};
+}
+
 const irregular: Verb[] = [
   { infinitive: "ser", meaning: "是；成为", category: "不规则动词", note: "完整展示 ser 的常用变位。", forms: {
     "indicative-present":["sou","és","é","somos","sois","são"], "indicative-simplePast":["fui","foste","foi","fomos","fostes","foram"], "indicative-compoundPast":ter.map(x=>`${x} sido`), "indicative-imperfect":["era","eras","era","éramos","éreis","eram"], "indicative-future":["serei","serás","será","seremos","sereis","serão"],
@@ -55,12 +71,12 @@ const irregular: Verb[] = [
 export default function Home() {
   const [query, setQuery] = useState("falar"); const [mood, setMood] = useState("indicative"); const [tense, setTense] = useState("present");
   const normalized = query.trim().toLowerCase();
-  const result = useMemo(() => irregular.find(v => v.infinitive === normalized) ?? regular(normalized), [normalized]);
+  const result = useMemo(() => irregular.find(v => v.infinitive === normalized) ?? porFamily(normalized) ?? regular(normalized), [normalized]);
   const pickMood = (next: string) => { setMood(next); setTense(tenseOrder[next][0]); };
   const forms = result?.forms[`${mood}-${tense}`] ?? [];
   return <main>
     <nav className="nav"><a className="brand" href="#top">verbo<span>pt</span></a><span className="nav-note">葡萄牙语动词变位查询</span></nav>
-    <section className="hero" id="top"><p className="eyebrow">PORTUGUÊS · CONJUGAÇÃO</p><h1>每一个动词，<br/><em>都有它的节奏。</em></h1><p className="intro">查询葡萄牙语动词的陈述式、虚拟式、命令式与不定式。规则 -ar、-er、-ir 动词可自动生成完整常用变位。</p><form className="search" onSubmit={(e:FormEvent)=>e.preventDefault()}><label htmlFor="verb">查询动词</label><div className="search-row"><input id="verb" value={query} onChange={e=>setQuery(e.target.value)} placeholder="例如 falar, ser, comer" autoComplete="off"/><button type="submit">查询 <span>→</span></button></div></form><div className="quick"><span>试试这些</span>{["falar","comer","abrir","ser","estar","ir"].map(w=><button key={w} onClick={()=>setQuery(w)}>{w}</button>)}</div></section>
+    <section className="hero" id="top"><p className="eyebrow">PORTUGUÊS · CONJUGAÇÃO</p><h1>每一个动词，<br/><em>都有它的节奏。</em></h1><p className="intro">查询葡萄牙语动词的陈述式、虚拟式、命令式与不定式。规则 -ar、-er、-ir 及不规则 -pôr/-por 动词可自动生成常用变位。</p><form className="search" onSubmit={(e:FormEvent)=>e.preventDefault()}><label htmlFor="verb">查询动词</label><div className="search-row"><input id="verb" value={query} onChange={e=>setQuery(e.target.value)} placeholder="例如 falar, pôr, compor" autoComplete="off"/><button type="submit">查询 <span>→</span></button></div></form><div className="quick"><span>试试这些</span>{["falar","comer","pôr","compor","ser","ir"].map(w=><button key={w} onClick={()=>setQuery(w)}>{w}</button>)}</div></section>
     <section className="result-section" aria-live="polite">{result ? <div className="result-card"><div className="result-head"><div><p className="eyebrow">{result.category}</p><h2>{result.infinitive}</h2><p className="meaning">{result.meaning}</p></div><p className="note-top">{result.note}</p></div><div className="mood-tabs">{["indicative","subjunctive","imperative","infinitive"].map(x=><button className={mood===x?"active":""} onClick={()=>pickMood(x)} key={x}>{labels[x]}</button>)}</div><div className="tense-tabs">{tenseOrder[mood].map(x=><button className={tense===x?"active":""} onClick={()=>setTense(x)} key={x}>{labels[x]}</button>)}</div><div className="forms">{forms.map((form,index)=><div className="form" key={index}><span>{mood==="imperative"?commandPeople[index]:mood==="infinitive"&&tense==="impersonal"?"动词原形":people[index]}</span><strong>{form}</strong></div>)}</div>{mood==="subjunctive"&&<p className="grammar-note">注：虚拟式的传统术语与陈述式不完全一一对应；此处“简单过去时”呈现 <em>pretérito imperfeito do conjuntivo</em>，复合过去时呈现 <em>pretérito perfeito composto</em>。</p>}{mood==="infinitive"&&<p className="grammar-note">人称不定式（<em>infinitivo pessoal</em>）可随主语变化；非人称不定式（<em>infinitivo impessoal</em>）只保留动词原形。</p>}</div> : <div className="empty"><p className="eyebrow">暂时无法生成</p><h2>请输入动词原形</h2><p>已支持全部规则 -ar、-er、-ir 动词，以及 ser、estar、ir 的完整常用变位。</p></div>}</section>
     <footer><span>verbo<span>pt</span></span><p>为葡语学习者准备的轻量变位工具</p></footer>
   </main>;
