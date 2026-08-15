@@ -4,6 +4,12 @@ const orders={indicative:["present","simplePast","compoundPast","imperfect","fut
 const chineseGlosses={falar:"说话",comer:"吃；吃饭",abrir:"打开；张开；开放",ser:"是；成为",estar:"在；处于",ir:"去",ter:"有；拥有",fazer:"做；制作",dizer:"说；告诉",poder:"能够；可以",querer:"想要；希望",saber:"知道；懂得",vir:"来",dar:"给；给予",ver:"看；看见",pôr:"放；置",compor:"组成；创作",propor:"提议；建议",repor:"放回；补充"};
 Object.assign(chineseGlosses,{crer:"相信",manter:"保持；维持",obter:"获得",conter:"包含；控制",deter:"阻止；拘留",reter:"保留",intervir:"干预",convir:"适合；有必要",refazer:"重做",desfazer:"拆开；取消",contradizer:"反驳；矛盾",rever:"复习；重新看",atrair:"吸引",trair:"背叛",possuir:"拥有",atribuir:"归因；赋予",constituir:"构成",contribuir:"贡献",incluir:"包括",excluir:"排除",substituir:"替代"});
 let mood="indicative",tense="present";
+const flipApprovedVerbs=new Set(["falar","comer","abrir","tocar","chegar","começar","ficar","passear","produzir","dirigir","ler","descer","conseguir","polir","prevenir","odiar","requerer","roer","extinguir","refletir","reflectir","divergir","erguer","repetir","ferir","crer","pôr","por","compor","decompor","dispor","expor","impor","opor","propor","repor","supor","manter","obter","conter","deter","reter","entreter","intervir","convir","advir","provir","sobrevir","refazer","desfazer","satisfazer","contradizer","desdizer","predizer","rever","antever","atrair","contrair","distrair","extrair","retrair","subtrair","trair","possuir","atribuir","constituir","contribuir","diminuir","distribuir","excluir","incluir","influir","restituir","substituir"]);
+function isFlipApproved(word){const w=word==="por"?"pôr":word;return flipApprovedVerbs.has(word)||flipApprovedVerbs.has(w)||Boolean(irreg[w]||moreIrreg[w]||regularSpecials[w])}
+const getVerbBase=getVerb;
+getVerb=word=>isFlipApproved(word)?getVerbBase(word):null;
+const renderBase=render;
+render=()=>{renderBase();const word=document.querySelector("#verb").value.trim().toLowerCase();if(!isFlipApproved(word))document.querySelector("#result").innerHTML='<div class="empty"><p class="eyebrow">FLiP 受控词库</p><h2>词库暂未收录</h2><p>为避免将拼写错误或非葡语动词自动变位，只有经 FLiP（Português europeu）核对的动词可以查询。</p><p><a class="dictionary-link" href="https://www.flip.pt/Modulos/Conjugador" target="_blank" rel="noopener noreferrer">前往 FLiP Conjugador 核对 ↗</a></p></div>'};
 const regularBase=regular;
 regular=word=>{const v=regularBase(word);if(!v)return v;const f=v.forms["indicative-simplePast"];if(word.endsWith("car"))f[0]=word.slice(0,-3)+"quei";else if(word.endsWith("gar"))f[0]=word.slice(0,-2)+"uei";else if(word.endsWith("çar"))f[0]=word.slice(0,-3)+"cei";return v};
 const derivedFamilyBase=derivedFamily;
